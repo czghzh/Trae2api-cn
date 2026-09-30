@@ -85,7 +85,7 @@ MODEL_ALIASES = {
     "deepseek-v4-flash 正式版": "DeepSeek-V4-Flash-Official",
     "seed-2.1-pro": "Doubao-Seed-2.1-Pro",
     "seed-2.1-turbo": "Doubao-Seed-2.1-Turbo",
-    "seed-code": "Doubao-Seed-Code",
+    # "seed-code" -> "Doubao-Seed-Code" 已删除（实测 Trae 上游不支持 tools，2026-10-01）
     "seed-evolving": "Doubao-Seed-Evolving",
     "qwen3.7-plus": "qwen-3.7-plus",
     "kimi-k2.6": "kimi-k2.6",
@@ -105,10 +105,9 @@ MODEL_ALIASES = {
     "qwen36-35b": "qwen36-35b",
     "Doubao-Seed-2.1-Pro": "Doubao-Seed-2.1-Pro",
     "Doubao-Seed-2.1-Turbo": "Doubao-Seed-2.1-Turbo",
-    "Doubao-Seed-Code": "Doubao-Seed-Code",
+    # "Doubao-Seed-Code" / "doubao-seed-code" 已删除（实测 Trae 上游不支持 tools，2026-10-01）
     "doubao-seed-2.1-pro": "Doubao-Seed-2.1-Pro",
     "doubao-seed-2.1-turbo": "Doubao-Seed-2.1-Turbo",
-    "doubao-seed-code": "Doubao-Seed-Code",
     "gpt-4o": "DeepSeek-V4-Pro",
     "gpt-4o-latest": "DeepSeek-V4-Pro",
     "gpt-4.1": "DeepSeek-V4-Pro",
@@ -235,8 +234,18 @@ def convert_model_name(model: str) -> str:
     return _ALIAS_LOOKUP.get(m, model)
 
 
+# Trae 上游已实测不支持工具调用的模型别名（2026-10-01）
+# 这些名字发到上游会 502 或 200 但纯文本，不返回 tool_calls
+_DISABLED_MODELS = frozenset({
+    "doubao-seed-code",
+    "seed-code",
+})
+
+
 def is_model_supported(model: str) -> bool:
     """中转站保持透传：未知模型也交给上游判断，避免新模型上线后需要改代码。"""
+    if (model or "").strip().lower() in _DISABLED_MODELS:
+        return False
     return True
 
 
