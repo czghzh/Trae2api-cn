@@ -1359,7 +1359,7 @@ function fillConnPreset(){{
 }}
 function connModelList(){{
   var raw = document.getElementById('conn-models').value || '';
-  var items = raw.split(/[\n,]+/).map(function(s){{ return s.trim(); }}).filter(Boolean);
+  var items = raw.split(/[\\n,]+/).map(function(s){{ return s.trim(); }}).filter(Boolean);
   return items.length ? items : CONN_PRESET.slice();
 }}
 function connModes(){{
