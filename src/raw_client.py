@@ -795,7 +795,11 @@ def response_style_instruction() -> str:
         "\"The user is asking\", \"Let me\", \"I need to\", \"This doesn't "
         "require\", or \"No tools needed\". Keep the reasoning steps that the "
         "answer genuinely needs (calculations, key facts, code) and drop "
-        "everything else. Emit each code block exactly once."
+        "everything else. Emit each code block exactly once. "
+        "Never narrate your own runtime environment: do not mention sandboxes, "
+        "workspaces, working directories, hosts, or being remote or unable to "
+        "reach the user's machine. When the request can be answered with a "
+        "client tool, emit the tool call instead of commenting on it."
     )
 
 
@@ -823,10 +827,14 @@ def build_runtime_system_prompt(
         "The external client application that started this conversation provides the client tools below.",
         "Caller client context (JSON):",
         json.dumps(context, ensure_ascii=False, separators=(",", ":"), default=str),
+        "The caller client context above is authoritative: it is the real machine where the client tools run. Treat it as the workspace and terminal for this conversation, and never replace it with a relay, server-side, or sandbox default path such as /workspace or C:\\workspace.",
+        "You are not running inside any remote or server-side sandbox. Your shell, filesystem and terminal are the caller's own machine, reachable only through the client tools below.",
+        "You have no shell, filesystem, or execution tools of your own. Do not claim that you already ran a command, read a file, or inspected a directory: the only way to do any of those is to emit a client tool call from the list below and wait for its result.",
+        "Never write out a command's output yourself. Until a client tool result appears in the conversation you do not know it, so never present a code block, table, or line as if it were real output from the user's machine.",
         "Discover the local environment through the available client tools when the request requires it.",
         "If a tool can answer the question, call it proactively and wait for the external client result.",
         "Remote or server-side tools cannot write into the caller workspace. Never claim that a client file was downloaded, created, edited, or saved unless a matching client tool result in the conversation confirms success.",
-        "Never repeat a completed tool call; do not describe that server's Linux filesystem as the caller workspace.",
+        "Never repeat a completed tool call. Never tell the user that you are sandboxed, remote, or unable to reach their machine while a client tool could answer the request.",
         "To use one, emit exactly one JSON block as your entire response and include no other text:",
         '<opencode_tool_call>{"id":"<unique-id>","name":"tool_name","input":{}}</opencode_tool_call>',
         'Replace "<unique-id>" with a new identifier for every call; never reuse an id across calls.',
